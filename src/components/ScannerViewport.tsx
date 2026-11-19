@@ -53,6 +53,8 @@ const _tmpQuat = new THREE.Quaternion();
 const _tmpPos = new THREE.Vector3();
 const _tmpColor = new THREE.Color();
 const _lookTarget = new THREE.Vector3();
+const _bgPhysical = new THREE.Color(0x0b0f17);
+const _bgSolid = new THREE.Color(0x070a0f);
 
 function detectSoftwareGl(): boolean {
   try {
@@ -143,6 +145,7 @@ export const ScannerViewport = React.forwardRef<ScannerViewportHandle, ScannerVi
     const depthPipRef = useRef<HTMLCanvasElement | null>(null);
     const maskPipRef = useRef<HTMLCanvasElement | null>(null);
     const [contextLost, setContextLost] = useState(false);
+    const [webglError, setWebglError] = useState<string | null>(null);
     const [cameraReady, setCameraReady] = useState(false);
 
     const stateRef = useRef({
@@ -419,11 +422,22 @@ export const ScannerViewport = React.forwardRef<ScannerViewportHandle, ScannerVi
 
       const isSoftwareGl = detectSoftwareGl();
 
-      const renderer = new THREE.WebGLRenderer({
-        antialias: !isSoftwareGl,
-        alpha: true,
-        powerPreference: 'high-performance',
-      });
+      let renderer: THREE.WebGLRenderer;
+      try {
+        renderer = new THREE.WebGLRenderer({
+          antialias: !isSoftwareGl,
+          alpha: true,
+          powerPreference: 'high-performance',
+        });
+      } catch (err) {
+        setWebglError(
+          err instanceof Error
+            ? err.message
+            : 'WebGL 3D bağlamı bu tarayıcıda başlatılamadı.',
+        );
+        return;
+      }
+      setWebglError(null);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.08;
@@ -998,7 +1012,7 @@ export const ScannerViewport = React.forwardRef<ScannerViewportHandle, ScannerVi
             .add(engState.camPos);
           camera.lookAt(_lookTarget);
           const showPhysical = mode === 'ar_overlay' || mode === 'ar_wire';
-          scene.background = showPhysical ? new THREE.Color(0x0b0f17) : new THREE.Color(0x070a0f);
+          scene.background = showPhysical ? _bgPhysical : _bgSolid;
           renderer.setClearAlpha(1);
         } else {
           camera.position.set(0, 1.45, 0);
@@ -1250,12 +1264,15 @@ export const ScannerViewport = React.forwardRef<ScannerViewportHandle, ScannerVi
           className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
         />
 
-        {contextLost && (
+        {(contextLost || webglError) && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#0A0D12] p-6 text-center">
             <div className="max-w-sm rounded-2xl border border-slate-800 bg-[#11161F] p-6">
-              <h2 className="text-base font-semibold text-slate-100">WebGL Bağlamı Yenileniyor</h2>
+              <h2 className="text-base font-semibold text-slate-100">
+                {webglError ? 'WebGL Başlatılamadı' : 'WebGL Bağlamı Yenileniyor'}
+              </h2>
               <p className="mt-2 text-sm text-slate-400">
-                Grafik bağlamı geçici olarak duraklatıldı. Tarama hacmi korunuyor.
+                {webglError ||
+                  'Grafik bağlamı geçici olarak duraklatıldı. Tarama hacmi korunuyor.'}
               </p>
             </div>
           </div>

@@ -134,12 +134,31 @@ export const ExportApkSheet: React.FC<ExportApkSheetProps> = ({
           {/* Android Native C++/GLSL v3.0 Patch + Capacitor APK Bundle */}
           <div className="space-y-2 border-t border-white/8 pt-4">
             <h3 className="text-xs font-semibold text-slate-300">
-              Android APK & iskenderozkul/3Drecon v3.0 Yaması
+              Android APK & GitHub Otomatik Derleme
             </h3>
+            <a
+              href="https://github.com/henryalex454/3drecongs/releases/latest/download/3Drecon-latest.apk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-[54px] w-full items-center justify-between rounded-xl bg-teal-500 px-4 py-3 text-left text-slate-950 hover:bg-teal-400 transition"
+            >
+              <div className="flex items-center gap-3">
+                <Smartphone className="h-5 w-5 shrink-0" />
+                <div>
+                  <div className="text-sm font-semibold">
+                    En Güncel 3Drecon-latest.apk İndir
+                  </div>
+                  <div className="text-[11px] text-slate-900/80">
+                    henryalex454/3drecongs · Her güncellemede otomatik tazelenir
+                  </div>
+                </div>
+              </div>
+              <Download className="h-4 w-4 shrink-0" />
+            </a>
             <button
               type="button"
               onClick={onExportAndroidKit}
-              className="flex min-h-[56px] w-full items-center justify-between rounded-xl border border-teal-500/35 bg-teal-500/10 px-4 py-3 text-left hover:bg-teal-500/16 transition"
+              className="flex min-h-[54px] w-full items-center justify-between rounded-xl border border-teal-500/35 bg-teal-500/10 px-4 py-3 text-left hover:bg-teal-500/16 transition"
             >
               <div className="flex items-center gap-3">
                 <Code2 className="h-5 w-5 text-teal-300 shrink-0" />

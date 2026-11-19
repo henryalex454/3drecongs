@@ -143,7 +143,6 @@ export class TsdfVoxelMesher {
 
   constructor(voxelSize = 0.062) {
     this.group.name = 'UnifiedTsdfMesh';
-    this.setVoxelSize(voxelSize);
 
     this.surfaceMaterial = new THREE.MeshStandardMaterial({
       vertexColors: true,
@@ -173,6 +172,8 @@ export class TsdfVoxelMesher {
       opacity: 0.92,
       depthTest: true,
     });
+
+    this.setVoxelSize(voxelSize);
   }
 
   public getVoxelSize(): number {
@@ -184,7 +185,9 @@ export class TsdfVoxelMesher {
     this.clear();
     this.voxelSize = sizeM;
     this.truncDist = Math.max(sizeM * 2.6, 0.042);
-    this.pointsMaterial.size = Math.max(0.012, sizeM * 0.48);
+    if (this.pointsMaterial) {
+      this.pointsMaterial.size = Math.max(0.012, sizeM * 0.48);
+    }
   }
 
   public clear() {
