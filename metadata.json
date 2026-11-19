@@ -1,0 +1,6 @@
+{
+  "name": "3Drecon Studio",
+  "description": "Mobil ve APK için optimize edilmiş gerçek zamanlı 3D tarama, hızlı pürüzsüz Taubin mesh, duvar oklüzyonu, aynalı yüzey koruma ve makro derinlik motoru.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
