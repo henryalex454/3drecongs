@@ -2,10 +2,9 @@ name: Build & Refresh Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
     paths-ignore:
       - 'dist/3Drecon-latest.apk'
-      - 'README.md'
   workflow_dispatch:
 
 permissions:
@@ -18,57 +17,80 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
-      - name: Setup Java 17 (Android Gradle)
+      - name: Setup Java 21 (Android Gradle)
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Install dependencies & build Vite PWA
         run: |
-          npm ci
+          npm install --no-audit --no-fund --legacy-peer-deps
           npm run build
 
-      - name: Package Android project with Capacitor
+      - name: Package Android project with Capacitor 7
         run: |
-          npm install --no-save @capacitor/core @capacitor/cli @capacitor/android
+          npm install --no-save --no-audit --no-fund --legacy-peer-deps @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+          rm -rf android
           npx cap add android
           npx cap sync android
 
-      - name: Ensure Android Camera & Hardware WebGL Permissions
+      - name: Configure Android Camera, WakeLock & WebGL Permissions
         run: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          if ! grep -q "android.permission.CAMERA" "$MANIFEST"; then
-            sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application|' "$MANIFEST"
+          node -e '
+            const fs = require("fs");
+            const file = "android/app/src/main/AndroidManifest.xml";
+            let xml = fs.readFileSync(file, "utf8");
+            const perms = [
+              "<uses-permission android:name=\"android.permission.CAMERA\" />",
+              "<uses-permission android:name=\"android.permission.WAKE_LOCK\" />",
+              "<uses-feature android:name=\"android.hardware.camera\" android:required=\"false\" />",
+              "<uses-feature android:name=\"android.hardware.camera.autofocus\" android:required=\"false\" />",
+              "<uses-feature android:glEsVersion=\"0x00030000\" android:required=\"false\" />"
+            ];
+            for (const p of perms) {
+              if (!xml.includes(p)) {
+                xml = xml.replace("<application", "    " + p + "\n    <application");
+              }
+            }
+            if (!xml.includes("android:hardwareAccelerated")) {
+              xml = xml.replace("<application", "<application android:hardwareAccelerated=\"true\"");
+            }
+            fs.writeFileSync(file, xml, "utf8");
+          '
+
+      - name: Accept Android SDK Licenses
+        run: |
+          if [ -x "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
           fi
 
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
       - name: Prepare 3Drecon-latest.apk
         run: |
           mkdir -p dist
           cp android/app/build/outputs/apk/debug/app-debug.apk dist/3Drecon-latest.apk
+          ls -lh dist/3Drecon-latest.apk
 
-      - name: Commit fresh APK to dist/3Drecon-latest.apk
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f dist/3Drecon-latest.apk
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: refresh dist/3Drecon-latest.apk [skip ci]"
-            git push
-          fi
+      - name: Upload APK Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 3Drecon-latest-apk
+          path: dist/3Drecon-latest.apk
+          retention-days: 30
 
       - name: Publish Latest GitHub Release APK
         uses: softprops/action-gh-release@v2
@@ -77,11 +99,23 @@ jobs:
           name: 3Drecon Studio v3.0 (Latest APK)
           body: |
             Otomatik derlenen en güncel **3Drecon Studio v3.0** Android APK paketi.
-            - Birleşik TSDF + Surface Nets + Taubin pürüzsüz mesh
+            - Birleşik TSDF + Surface Nets + Taubin pürüzsüz mesh (üst üste binme ve adacık yok)
             - Yan oda duvar oklüzyonu & derinlik testli 3B anchorlar
-            - Aynalı yüzey koruma & 8–45 cm Makro modu
+            - Aynalı yüzey koruma (Mirror Guard) & 8–45 cm Makro modu
             - Tüm 7 görünüm/meshleme modu (AR, Mesh, AR+Tel, Tel Kafes, Normal, Derinlik, Nokta)
           files: dist/3Drecon-latest.apk
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Refresh dist/3Drecon-latest.apk in repository
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/3Drecon-latest.apk
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: refresh dist/3Drecon-latest.apk [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

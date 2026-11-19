@@ -1,0 +1,13 @@
+{
+  "appId": "com.iskenderozkul.recon3d",
+  "appName": "3Drecon Studio",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

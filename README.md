@@ -1,8 +1,10 @@
 # 3Drecon Studio v3.0 — Mobil 3D Tarayıcı & Birleşik TSDF Mesh Motoru
 
+[![Build & Refresh Android APK](https://github.com/henryalex454/3drecongs/actions/workflows/build-apk.yml/badge.svg)](https://github.com/henryalex454/3drecongs/actions/workflows/build-apk.yml)
+
 > **⬇ [En Güncel APK'yı İndir — 3Drecon-latest.apk (GitHub Release)](https://github.com/henryalex454/3drecongs/releases/latest/download/3Drecon-latest.apk)**  
 > **⬇ [Alternatif Doğrudan Bağlantı — dist/3Drecon-latest.apk](https://github.com/henryalex454/3drecongs/raw/main/dist/3Drecon-latest.apk)**  
-> *(Bu bağlantılar her `main` güncellemesinde GitHub Actions tarafından otomatik olarak en güncel derlemeyle tazelenir.)*
+> *(Bu bağlantılar her `main` güncellemesinde GitHub Actions tarafından ~2 dakika içinde otomatik olarak en güncel APK ile tazelenir. Derleme durumunu yukarıdaki rozetten veya **Actions** sekmesinden takip edebilirsiniz.)*
 
 **Kaynak taban:** [`iskenderozkul/3Drecon`](https://github.com/iskenderozkul/3Drecon)  
 **Hedef depo:** [`henryalex454/3drecongs`](https://github.com/henryalex454/3drecongs)  
